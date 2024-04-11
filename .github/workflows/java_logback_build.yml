@@ -35,6 +35,7 @@ jobs:
           distribution: 'corretto'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+      - name: Build
         with:
           build-root-directory: ./log-monitoring-logback
         run: ./gradlew clean build -x signArchives --console=plain --scan
