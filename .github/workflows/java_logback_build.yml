@@ -38,4 +38,4 @@ jobs:
         with:
           build-root-directory: ./log-monitoring-logback
           cache-read-only: false
-          arguments: clean build --console=plain --scan
+          arguments: clean build -x signArchives --console=plain --scan
