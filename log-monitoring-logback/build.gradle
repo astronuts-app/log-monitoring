@@ -41,9 +41,9 @@ publishing {
 
                 developers {
                     developer {
-                        id = 'astronuts-app'
-                        name = 'Astronuts'
-                        email = 'support@astronuts.io'
+                        id = 'arunkpatra'
+                        name = 'Arun Patra'
+                        email = 'arun@astronuts.io'
                     }
                 }
 
@@ -58,9 +58,8 @@ publishing {
 
     repositories {
         maven {
-            // Change URL to the Maven Central repository
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-
+            name = "OSSRH"
+            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
                 username = System.getenv('OSSRH_USERNAME')
                 password = System.getenv('OSSRH_PASSWORD')
@@ -69,12 +68,20 @@ publishing {
     }
 }
 
+// Only attempt to sign if we're not publishing to Maven Local
+//if (gradle.taskGraph.allTasks.any { it.name == 'publishToMavenLocal' }) {
+    signing {
+        useInMemoryPgpKeys(System.getenv("MAVEN_SIGNING_KEY_ID"), System.getenv("MAVEN_SIGNING_KEY"), System.getenv("MAVEN_SIGNING_PASSWORD"))
+        sign publishing.publications
+    }
+//}
+
 // Signing the published artifacts
-signing {
-    useInMemoryPgpKeys(System.getenv("MAVEN_SIGNING_KEY_ID"), System.getenv("MAVEN_SIGNING_KEY"), System.getenv("MAVEN_SIGNING_PASSWORD"))
-    //sign publishing.publications.mavenJava
-    sign configurations.archives
-}
+//signing {
+//    useInMemoryPgpKeys(System.getenv("MAVEN_SIGNING_KEY_ID"), System.getenv("MAVEN_SIGNING_KEY"), System.getenv("MAVEN_SIGNING_PASSWORD"))
+//    //sign publishing.publications.mavenJava
+//    sign configurations.archives
+//}
 
 java {
     withSourcesJar()

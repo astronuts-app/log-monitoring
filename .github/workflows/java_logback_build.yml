@@ -33,9 +33,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'corretto'
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
         with:
           build-root-directory: ./log-monitoring-logback
-          cache-read-only: false
-          arguments: clean build -x signArchives --console=plain --scan
+        run: ./gradlew clean build -x signArchives --console=plain --scan
+
