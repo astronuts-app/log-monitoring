@@ -70,10 +70,10 @@ publishing {
 
 // Only attempt to sign if we're not publishing to Maven Local
 //if (gradle.taskGraph.allTasks.any { it.name == 'publishToMavenLocal' }) {
-    signing {
-        useInMemoryPgpKeys(System.getenv("MAVEN_SIGNING_KEY_ID"), System.getenv("MAVEN_SIGNING_KEY"), System.getenv("MAVEN_SIGNING_PASSWORD"))
-        sign publishing.publications
-    }
+signing {
+    useInMemoryPgpKeys(System.getenv("MAVEN_SIGNING_KEY_ID"), System.getenv("MAVEN_SIGNING_KEY"), System.getenv("MAVEN_SIGNING_PASSWORD"))
+    sign publishing.publications
+}
 //}
 
 // Signing the published artifacts

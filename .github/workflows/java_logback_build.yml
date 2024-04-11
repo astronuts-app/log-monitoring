@@ -36,6 +36,6 @@ jobs:
       - name: Build
         run: |
           cd ./log-monitoring-logback
-          ./gradlew clean build -x signArchives --console=plain --scan
+          ./gradlew clean build --console=plain --scan
 
 
