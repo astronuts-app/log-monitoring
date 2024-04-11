@@ -17,7 +17,7 @@
 package io.astronuts;
 
 /**
- * The main class.
+ * The main class
  */
 public class Main {
 
