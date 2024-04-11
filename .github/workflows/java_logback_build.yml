@@ -23,9 +23,6 @@ permissions:
 jobs:
   Build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./log-monitoring-logback
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -38,7 +35,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
       - name: Build
         run: |
-          cd log-monitoring-logback
+          cd ./log-monitoring-logback
           ./gradlew clean build -x signArchives --console=plain --scan
 
 
