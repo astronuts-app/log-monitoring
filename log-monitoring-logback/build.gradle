@@ -1,3 +1,7 @@
+import groovy.lang.Closure
+
+import java.security.MessageDigest
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -68,6 +72,8 @@ publishing {
     }
 }
 
+
+
 // Only attempt to sign if we're not publishing to Maven Local
 //if (gradle.taskGraph.allTasks.any { it.name == 'publishToMavenLocal' }) {
 signing {
@@ -83,6 +89,59 @@ static def base64Decode(encodedString){
     }
     return null;
 }
+
+tasks.register('generateJarChecksums') {
+    dependsOn jar
+
+    doLast {
+        // Define the files for which to generate checksums
+        def filesToChecksum = [jar.archiveFile.get().asFile]
+
+        // Generate checksums
+        filesToChecksum.each { file ->
+            ['MD5', 'SHA1'].each { type ->
+                def checksum = generateChecksum(file, type)
+                def checksumFile = new File(file.parentFile, "${file.name}.${type.toLowerCase()}")
+                checksumFile.text = checksum
+                println "Generated ${type} checksum for ${file.name} at ${checksumFile}"
+            }
+        }
+    }
+}
+
+// Task for generating checksums for the POM file
+tasks.register('generatePomChecksums') {
+    dependsOn publishToMavenLocal
+
+    doLast {
+        def pomFile = file("${buildDir}/publications/mavenJava/pom-default.xml")
+        if (pomFile.exists()) {
+            ['MD5', 'SHA1'].each { type ->
+                def checksum = generateChecksum(pomFile, type)
+                def checksumFile = new File(pomFile.parentFile, "${pomFile.name}.${type.toLowerCase()}")
+                checksumFile.text = checksum
+                println "Generated ${type} checksum for ${pomFile.name} at ${checksumFile}"
+            }
+        }
+    }
+}
+
+static String generateChecksum(File file, String algorithm) {
+    MessageDigest digest = MessageDigest.getInstance(algorithm)
+    file.withInputStream { fis ->
+        byte[] buffer = new byte[8192]
+        int read = 0
+        while ((read = fis.read(buffer)) > 0) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    byte[] hashBytes = digest.digest()
+    return hashBytes.collect(({ String.format('%02x', it) } as Closure<Object>)).join('')
+}
+
+//publishToMavenLocal.dependsOn generateJarChecksums
+//publishToMavenLocal.dependsOn generatePomChecksums
+
 //}
 
 // Signing the published artifacts
