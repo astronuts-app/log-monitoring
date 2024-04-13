@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'io.astronuts'
-version = '0.0.1'
+version = '0.0.2'
 archivesBaseName = "log-monitoring-logback"
 sourceCompatibility = '1.8'
 
@@ -79,6 +79,7 @@ publishing {
 signing {
     useInMemoryPgpKeys(System.getenv("SIGNING_KEY_ID"), base64Decode(System.getenv("SIGNING_KEY")), System.getenv("SIGNING_PASSWORD"))
     sign publishing.publications
+    //sign configurations.archives
 }
 
 static def base64Decode(encodedString){
@@ -109,9 +110,46 @@ tasks.register('generateJarChecksums') {
     }
 }
 
+tasks.register('generateSourcesChecksums') {
+    dependsOn jar
+
+    doLast {
+        // Define the files for which to generate checksums
+        def filesToChecksum = [sourcesJar.archiveFile.get().asFile]
+
+        // Generate checksums
+        filesToChecksum.each { file ->
+            ['MD5', 'SHA1'].each { type ->
+                def checksum = generateChecksum(file, type)
+                def checksumFile = new File(file.parentFile, "${file.name}.${type.toLowerCase()}")
+                checksumFile.text = checksum
+                println "Generated ${type} checksum for ${file.name} at ${checksumFile}"
+            }
+        }
+    }
+}
+
+tasks.register('generateJavadocChecksums') {
+    dependsOn jar
+
+    doLast {
+        // Define the files for which to generate checksums
+        def filesToChecksum = [javadocJar.archiveFile.get().asFile]
+
+        // Generate checksums
+        filesToChecksum.each { file ->
+            ['MD5', 'SHA1'].each { type ->
+                def checksum = generateChecksum(file, type)
+                def checksumFile = new File(file.parentFile, "${file.name}.${type.toLowerCase()}")
+                checksumFile.text = checksum
+                println "Generated ${type} checksum for ${file.name} at ${checksumFile}"
+            }
+        }
+    }
+}
+
 // Task for generating checksums for the POM file
 tasks.register('generatePomChecksums') {
-    dependsOn publishToMavenLocal
 
     doLast {
         def pomFile = file("${buildDir}/publications/mavenJava/pom-default.xml")
@@ -139,8 +177,10 @@ static String generateChecksum(File file, String algorithm) {
     return hashBytes.collect(({ String.format('%02x', it) } as Closure<Object>)).join('')
 }
 
-//publishToMavenLocal.dependsOn generateJarChecksums
-//publishToMavenLocal.dependsOn generatePomChecksums
+publishToMavenLocal.dependsOn generateJarChecksums
+publishToMavenLocal.dependsOn generatePomChecksums
+publishToMavenLocal.dependsOn generateSourcesChecksums
+publishToMavenLocal.dependsOn generateJavadocChecksums
 
 //}
 
@@ -151,6 +191,23 @@ static String generateChecksum(File file, String algorithm) {
 //    sign configurations.archives
 //}
 
+tasks.register('javadocJar', Jar) {
+    from javadoc
+    //archiveBaseName.set("${project.name}-javadoc")
+    archiveClassifier.set('javadoc')
+}
+
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier.set('sources')
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+//
+//
 java {
     withSourcesJar()
     withJavadocJar()
@@ -163,4 +220,17 @@ tasks.withType(JavaCompile).configureEach {
 
 test {
     useJUnitPlatform()
+}
+
+// Register the custom task to execute all required tasks
+tasks.register('publishAll') {
+    dependsOn 'build'
+    dependsOn 'sourcesJar'
+    dependsOn 'javadocJar'
+    dependsOn 'generatePomFileForMavenJavaPublication'
+    dependsOn 'generateJarChecksums'
+    dependsOn 'generateSourcesChecksums'
+    dependsOn 'generateJavadocChecksums'
+    dependsOn 'generatePomChecksums'
+    dependsOn 'publishToMavenLocal'
 }

@@ -72,6 +72,9 @@ public class AstronutsAppender<E> extends AsyncAstronutsAppenderBase<E> {
             return;
         }
         super.start();
+        System.out.println("Info: You have enabled Astronuts log monitoring through the Logback appender. " +
+                "To customize the configuration, or for more details, please visit " +
+                "https://www.astronuts.io/docs/log-monitoring.");
     }
 
     @Override
