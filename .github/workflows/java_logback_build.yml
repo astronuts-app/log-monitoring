@@ -33,9 +33,11 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+
       - name: Build
-        run: |
-          cd ./log-monitoring-logback
-          ./gradlew clean build --console=plain --scan
+        working-directory: ./log-monitoring-logback
+        cache-read-only: false
+        run: ./gradlew clean build --console=plain --scan
+
 
 
