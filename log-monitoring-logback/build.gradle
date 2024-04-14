@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'io.astronuts'
-version = '0.0.2'
+version = '0.0.6'
 archivesBaseName = "log-monitoring-logback"
 sourceCompatibility = '1.8'
 
