@@ -36,7 +36,6 @@ jobs:
 
       - name: Build
         working-directory: ./log-monitoring-logback
-        cache-read-only: false
         run: ./gradlew clean build --console=plain --scan
 
 
