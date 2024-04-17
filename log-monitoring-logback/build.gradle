@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'io.astronuts'
-version = '0.0.2'
+version = '0.0.9'
 archivesBaseName = "log-monitoring-logback"
 sourceCompatibility = '1.8'
 
@@ -73,7 +73,6 @@ publishing {
 }
 
 
-
 // Only attempt to sign if we're not publishing to Maven Local
 //if (gradle.taskGraph.allTasks.any { it.name == 'publishToMavenLocal' }) {
 signing {
@@ -90,6 +89,34 @@ static def base64Decode(encodedString){
     }
     return null;
 }
+
+tasks.register('generateProperties') {
+
+    doLast {
+        def props = new Properties()
+        props.setProperty('version', version.toString())
+        // Add more properties as needed
+
+        def file = new File("${buildDir}/app.properties")
+        file.parentFile.mkdirs()
+        file.withWriter('UTF-8') { writer ->
+            props.store(writer, null)
+        }
+    }
+}
+
+build.dependsOn generateProperties
+
+jar {
+    dependsOn generateProperties
+    from("${buildDir}") {
+        include 'app.properties'
+    }
+}
+
+//generateProperties.dependsOn compileJava
+//compileJava.dependsOn generateProperties
+//processResources.dependsOn generateProperties
 
 tasks.register('generateJarChecksums') {
     dependsOn jar
