@@ -25,8 +25,11 @@ import io.astronuts.monitoring.logback.api.DefaultEventTransformer;
 import io.astronuts.monitoring.logback.api.EventTransformer;
 import io.astronuts.monitoring.logback.api.LogShipper;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -169,7 +172,8 @@ public class AsyncAstronutsAppenderBase<E> extends UnsynchronizedAppenderBase<E>
         }
 
         if (secretKey == null || secretKey.trim().isEmpty()) {
-            System.err.println("Error: Astronuts 'File Secret Key' must be provided. For more information see " +
+            System.out.println("Warn: Astronuts log monitoring library was found in classpath, but the Astronuts " +
+                    "'File Secret Key' was not provided. To solve the issue, or disable Astronuts log monitoring see " +
                     "https://www.astronuts.io/docs/log-monitoring. After fixing the issue, restart your application.");
             return;
         }
@@ -196,9 +200,9 @@ public class AsyncAstronutsAppenderBase<E> extends UnsynchronizedAppenderBase<E>
         // Thread
         super.start();
         worker.start();
-        System.out.println("Info: You have enabled Astronuts log monitoring v0.0.6 through the Logback appender. " +
-                "To customize the configuration, or for more details, please visit " +
-                "https://www.astronuts.io/docs/log-monitoring.");
+        System.out.printf("Info: You have enabled Astronuts log monitoring v%s through the Logback " +
+                "appender. To customize the configuration, or for more details, please visit " +
+                "https://www.astronuts.io/docs/log-monitoring.%n", getVersion());
     }
 
     @Override
@@ -238,7 +242,7 @@ public class AsyncAstronutsAppenderBase<E> extends UnsynchronizedAppenderBase<E>
 
     @Override
     protected void append(E eventObject) {
-        if (isQueueBelowDiscardingThreshold() && isDiscardable(eventObject)) {
+        if (isQueueBelowDiscardingThreshold() || isDiscardable(eventObject)) {
             return;
         }
         preprocess(eventObject);
@@ -381,6 +385,24 @@ public class AsyncAstronutsAppenderBase<E> extends UnsynchronizedAppenderBase<E>
     @SuppressWarnings("unused")
     public int getRemainingCapacity() {
         return blockingQueue.remainingCapacity();
+    }
+
+    /**
+     * Get the version of the library.
+     * @return The version of the library.
+     */
+    private String getVersion() {
+        String version = "0.0.0";
+        Properties props = new Properties();
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("app.properties")) {
+            if (is != null) {
+                props.load(is);
+                version = props.getProperty("version");
+            }
+        } catch (Throwable e) {
+            // NOOP
+        }
+        return version;
     }
 
     class Worker extends Thread {
