@@ -39,7 +39,12 @@ public class AstronutsAppender extends AsyncAstronutsAppenderBase<ILoggingEvent>
      */
     protected boolean isDiscardable(ILoggingEvent event) {
         Level level = event.getLevel();
-        return level.toInt() < Level.ERROR_INT;
+        boolean exclude = getExcludedLoggersSet().stream().anyMatch(loggerName -> event.getLoggerName().startsWith(loggerName));
+        boolean discard = level.toInt() < Level.ERROR_INT;
+        if (exclude && !discard) {
+            discardedCounter.incrementAndGet();
+        }
+        return discard || exclude;
     }
 
     protected void preprocess(ILoggingEvent eventObject) {

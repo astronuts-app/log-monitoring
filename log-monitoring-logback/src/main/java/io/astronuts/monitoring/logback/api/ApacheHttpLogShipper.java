@@ -33,6 +33,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
  */
 public class ApacheHttpLogShipper implements LogShipper{
 
+    private final String version;
     private final String secretKey;
     private final String endpointUrl;
     private final LifeCycle lifeCycle;
@@ -45,8 +46,9 @@ public class ApacheHttpLogShipper implements LogShipper{
      * @param endpointUrl The endpoint URL
      * @param lifeCycle   The lifecycle object
      */
-    public ApacheHttpLogShipper(String secretKey, String endpointUrl,
+    public ApacheHttpLogShipper(String version, String secretKey, String endpointUrl,
                                 LifeCycle lifeCycle) {
+        this.version = version;
         this.secretKey = secretKey;
         this.endpointUrl = endpointUrl;
         this.eventTransformer = new DefaultEventTransformer();
@@ -71,17 +73,17 @@ public class ApacheHttpLogShipper implements LogShipper{
                 switch (status) {
                     case 401:
                     case 403: {
-                        System.err.println("Error: Unauthorized. For help, please see " +
-                                "https://www.astronuts.io/docs/log-monitoring. After fixing the issue, " +
-                                "restart your application.");
+                        System.err.printf("\nError: Unauthorized. For help with Astronuts log monitoring (v%s),\n" +
+                                "please see https://www.astronuts.io/docs/log-monitoring. After fixing the issue,\n" +
+                                "restart your application.\n", version);
                         lifeCycle.stop();
                         break;
                     }
                     case 500:
                         if (!noticeIssued) {
-                            System.err.println("Warning: Astronuts log monitoring is currently unavailable. " +
-                                    "Please check https://status.astronuts.io for service status. Log monitoring" +
-                                    " will be disabled until the service is restored.");
+                            System.err.printf("\nWarning: Astronuts log monitoring (v%s) is currently unavailable.\n" +
+                                    "Please check https://status.astronuts.io for service status. Log monitoring\n" +
+                                    "will be disabled until the service is restored.\n", version);
                             noticeIssued = true;
                         }
                         break;
